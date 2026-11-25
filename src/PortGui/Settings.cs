@@ -52,23 +52,32 @@ internal sealed class Settings
         return s;
     }
 
-    // Wszystkie ścieżki do zasobów repo są absolutne i zakotwiczone w katalogu, w którym
-    // leży matmap.csv — niezależnie od katalogu roboczego procesu.
+    // Wszystkie narzędzia leżą w bin\ obok PortGui.exe, a data\ jest dwa poziomy wyżej.
+    // Kolejność: obok exe, potem w górę drzewa. Katalog roboczy nie ma znaczenia.
     public void Resolve()
     {
+        string baseDir = AppContext.BaseDirectory;
+
         try
         {
-            if (DataDir.Length == 0 || !Directory.Exists(DataDir))
-            {
-                string? mm = FindUp(AppContext.BaseDirectory, "matmap.csv");
-                DataDir = mm != null ? Path.GetDirectoryName(mm)! : "";
-            }
-
             if (FlverConv.Length == 0 || !File.Exists(FlverConv))
-                FlverConv = FindUp(AppContext.BaseDirectory, "FlverConv.exe") ?? "";
+                FlverConv = Existing(
+                    Path.Combine(baseDir, "FlverConv.exe"),
+                    FindUp(baseDir, "FlverConv.exe"));
 
             if (PortKit.Length == 0 || !File.Exists(PortKit))
-                PortKit = FindUp(AppContext.BaseDirectory, "PortKit.exe") ?? "";
+                PortKit = Existing(
+                    Path.Combine(baseDir, "PortKit.exe"),
+                    FindUp(baseDir, "PortKit.exe"));
+
+            if (DataDir.Length == 0 || !Directory.Exists(DataDir))
+            {
+                string beside = Path.GetFullPath(Path.Combine(baseDir, "..", "data"));
+                string? mm = FindUp(baseDir, "matmap.csv");
+                DataDir = Directory.Exists(beside)
+                    ? beside
+                    : mm != null ? Path.GetDirectoryName(mm)! : "";
+            }
 
             if (MatMap.Length == 0 || !File.Exists(MatMap))
                 MatMap = DataDir.Length > 0 ? Path.Combine(DataDir, "matmap.csv") : "";
@@ -76,12 +85,18 @@ internal sealed class Settings
         catch { }
     }
 
+    private static string Existing(string first, string? second)
+    {
+        if (File.Exists(first)) return first;
+        return second ?? first;
+    }
+
     public List<string> Validate()
     {
         var e = new List<string>();
-        if (!File.Exists(FlverConv)) e.Add("FlverConv.exe nie znaleziony");
-        if (!File.Exists(PortKit)) e.Add("PortKit.exe nie znaleziony");
-        if (!File.Exists(MatMap)) e.Add("matmap.csv nie znaleziony");
+        if (!File.Exists(FlverConv)) e.Add($"FlverConv.exe nie znaleziony (oczekiwano w bin\\)");
+        if (!File.Exists(PortKit)) e.Add($"PortKit.exe nie znaleziony (oczekiwano w bin\\)");
+        if (!File.Exists(MatMap)) e.Add($"matmap.csv nie znaleziony (oczekiwano w data\\)");
         if (DataDir.Length == 0) e.Add("katalog data nie znaleziony");
         if (!Directory.Exists(Ds3Dir)) e.Add("katalog DS3 nie istnieje");
         if (!Directory.Exists(ErDir)) e.Add("katalog ER nie istnieje");

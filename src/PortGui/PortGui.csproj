@@ -3,13 +3,17 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net11.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-    <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
+    <OutputPath>..\..\bin\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="SoulsFormats">
-      <HintPath>..\..\..\..\Dokumenty\GitHub\SoulsFormatsNEXT\SoulsFormats\bin\Debug\net9.0\SoulsFormats.dll</HintPath>
+      <HintPath>..\..\lib\SoulsFormats.dll</HintPath>
+      <Private>true</Private>
     </Reference>
   </ItemGroup>
 </Project>
