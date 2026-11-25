@@ -150,49 +150,64 @@ internal static class Program
         }
 
         string[] keys = f.Materials.Select((m, i) => Path.GetFileName(srcMtd[i])).ToArray();
+        var resolvedMtd = new string?[f.Materials.Count];
+        var resolvedGx = new int[f.Materials.Count];
         int unmatched = 0;
 
         for (int i = 0; i < f.Materials.Count; i++)
         {
             FLVER2.Material m = f.Materials[i];
-            int first = Array.FindIndex(keys, k =>
-                string.Equals(k, keys[i], StringComparison.OrdinalIgnoreCase));
 
             MapEntry? hit = null;
             string via = "";
-            if (map.TryMatchMtd(keys[i], out MapEntry me))
-            {
-                hit = me;
-                via = "mtd";
-            }
-            else if (map.TryMatchName(m.Name ?? "", out MapEntry ne))
+            if (map.TryMatchName(m.Name ?? "", out MapEntry ne))
             {
                 hit = ne;
                 via = "nazwa";
+            }
+            else if (map.TryMatchMtd(keys[i], out MapEntry me))
+            {
+                hit = me;
+                via = "mtd";
             }
 
             if (hit != null)
             {
                 string raw = Resolve(hit.Path, model);
-                m.MTD = NormalizeMtd(raw, out bool changed);
+                resolvedMtd[i] = NormalizeMtd(raw, out bool changed);
                 if (changed)
-                    Console.WriteLine($"  [{i}] ścieżka poprawiona: {raw} -> {m.MTD}");
-                m.Index = first >= 0 ? first : i;
-                m.GXIndex = hit.GX >= 0 && hit.GX < gxCount ? hit.GX : 0;
-                Console.WriteLine($"  [{i}] {keys[i]} -> {m.MTD} (matbin {m.Index}, gx {m.GXIndex}, po {via})");
+                    Console.WriteLine($"  [{i}] ścieżka poprawiona: {raw} -> {resolvedMtd[i]}");
+                resolvedGx[i] = hit.GX;
+                Console.WriteLine($"  [{i}] {keys[i]} -> {resolvedMtd[i]} (gx {resolvedGx[i]}, po {via})");
             }
             else
             {
                 unmatched++;
-                m.MTD = first >= 0 && first != i
-                    ? f.Materials[first].MTD
-                    : Resolve($"N:\\GR\\data\\Material\\mtd\\Chr\\{{CID}}\\{{CID}}_{i:D3}.matxml", model);
-                m.Index = first >= 0 ? first : i;
-                m.GXIndex = 0;
+                resolvedMtd[i] = Resolve(
+                    $"N:\\GR\\data\\Material\\mtd\\Chr\\{{CID}}\\{{CID}}_{i:D3}.matxml", model);
+                resolvedGx[i] = 0;
                 Console.Error.WriteLine(
                     $"  brak wpisu: [{i}] name='{m.Name}' mtd='{srcMtd[i]}' key='{keys[i]}'");
             }
         }
+
+        // matbin per wynikowe MTD: duplikaty MTD dzielą slot, różne MTD dostają własny
+        var matbin = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (int i = 0; i < f.Materials.Count; i++)
+        {
+            string mtd = resolvedMtd[i]!;
+            if (!matbin.TryGetValue(mtd, out int idx))
+            {
+                idx = matbin.Count;
+                matbin[mtd] = idx;
+            }
+
+            FLVER2.Material m = f.Materials[i];
+            m.MTD = mtd;
+            m.Index = idx;
+            m.GXIndex = resolvedGx[i] >= 0 && resolvedGx[i] < gxCount ? resolvedGx[i] : 0;
+        }
+        
         if (unmatched > 0)
             Console.Error.WriteLine(
                 $"UWAGA: {unmatched} materiałów bez wpisu w matmap.csv — użyto ścieżek zastępczych");

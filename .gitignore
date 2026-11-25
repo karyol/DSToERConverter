@@ -11,6 +11,7 @@ obj/
 # ustawienia lokalne
 Settings.local.json
 *.local.json
+set_paths.ps1
 
 # binaria gry
 *.flver
@@ -62,3 +63,5 @@ data/out/
 # /ER/
 # /DS3/
 # /mod/
+data/ds3
+data/er

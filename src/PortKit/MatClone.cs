@@ -1,3 +1,4 @@
+using System.Text;
 using SoulsFormats;
 
 internal static class MatClone
@@ -5,32 +6,23 @@ internal static class MatClone
     public static int Run(string[] argv)
     {
         var a = Args.Parse(argv);
-        string map = a.Require("matmap");
+        string mapPath = a.Require("matmap");
         string er = a.Require("er");
         string outDir = a.Require("out");
         string srcFlver = a.Require("src");
         int model = a.Int("model");
         int donor = a.Int("donor");
 
-        if (!File.Exists(map))
-            throw new FileNotFoundException($"brak matmap: {map}");
+        if (!File.Exists(mapPath))
+            throw new FileNotFoundException($"brak matmap: {mapPath}");
         if (!Directory.Exists(er))
             throw new DirectoryNotFoundException($"brak ER: {er}");
         if (!File.Exists(srcFlver))
             throw new FileNotFoundException($"brak flver: {srcFlver}");
 
-        var rows = File.ReadAllLines(map)
-            .Select(l => l.Trim())
-            .Where(l => l.Length > 0 && !l.StartsWith("#"))
-            .Select(l => l.Split(';'))
-            .Where(p => p.Length >= 3)
-            .Select(p => new Row(p[0].Trim(), p[1].Trim(), int.Parse(p[2].Trim())))
-            .ToList();
-
-        if (rows.Count == 0)
-            throw new InvalidDataException("matmap bez wpisów");
-
+        var map = MatMap.Load(mapPath);
         var flver = FLVER2.Read(srcFlver);
+
         string matOut = Path.Combine(outDir, "material");
         Directory.CreateDirectory(matOut);
 
@@ -38,8 +30,8 @@ internal static class MatClone
 
         foreach (var m in flver.Materials)
         {
-            string mtd = Path.GetFileName(m.MTD.Replace('\\', '/'));
-            var row = rows.FirstOrDefault(r => Wildcard(r.Ds3, mtd));
+            string mtd = Path.GetFileName((m.MTD ?? "").Replace('\\', '/'));
+            var row = map.Resolve(m.Name, mtd);
             if (row == null)
             {
                 Console.Error.WriteLine($"  brak wzorca dla MTD {mtd} (materiał {m.Name})");
@@ -47,11 +39,11 @@ internal static class MatClone
                 continue;
             }
 
-            string srcPath = row.Er.Replace("{CIDU}", $"C{donor:D4}").Replace("{CID}", $"c{donor:D4}");
-            string outPath = row.Er.Replace("{CIDU}", $"C{model:D4}").Replace("{CID}", $"c{model:D4}");
+            string srcPath = Subst(row.Er, donor);
+            string outPath = Subst(row.Er, model);
 
             string matName = Util.Sanitize(Path.GetFileNameWithoutExtension(outPath));
-            string outMtd = outPath.Substring(0, outPath.Length - ".matxml".Length);
+            string outMtd = outPath[..^".matxml".Length];
 
             byte[]? raw = Locate(er, srcPath);
             if (raw == null)
@@ -61,11 +53,8 @@ internal static class MatClone
                 continue;
             }
 
-            var xml = System.Text.Encoding.UTF8.GetString(raw);
-            xml = RewriteTextures(xml, matName);
-
-            string dst = Path.Combine(matOut, matName + ".matxml");
-            File.WriteAllText(dst, xml, new System.Text.UTF8Encoding(false));
+            string xml = RewriteTextures(Encoding.UTF8.GetString(raw), matName);
+            File.WriteAllText(Path.Combine(matOut, matName + ".matxml"), xml, new UTF8Encoding(false));
 
             Console.WriteLine($"MAT;{m.Name};{outMtd}.matxml;{row.Gx}");
             ok++;
@@ -75,16 +64,10 @@ internal static class MatClone
         return fail == 0 ? 0 : 1;
     }
 
-    private sealed record Row(string Ds3, string Er, int Gx);
-
-    private static bool Wildcard(string pattern, string value)
-    {
-        string p = pattern.Replace("[ARSN]", "\u0001");
-        var rx = new System.Text.RegularExpressions.Regex(
-            "^" + System.Text.RegularExpressions.Regex.Escape(p).Replace("\u0001", "[A-Za-z0-9_]+") + "$",
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-        return rx.IsMatch(value);
-    }
+    private static string Subst(string t, int id) => t
+        .Replace("{CIDU}", $"C{id:D4}")
+        .Replace("{CID}", $"c{id:D4}")
+        .Replace("{ID}", $"{id:D4}");
 
     private static string RewriteTextures(string xml, string matName)
     {
@@ -93,8 +76,7 @@ internal static class MatClone
         foreach (var t in doc.Descendants("texture"))
         {
             string slot = (string?)t.Attribute("slot") ?? "";
-            string suffix = Suffix(slot, i++);
-            t.SetAttributeValue("path", $"{matName}{suffix}");
+            t.SetAttributeValue("path", $"{matName}{Suffix(slot, i++)}");
         }
         return doc.ToString();
     }
@@ -122,7 +104,8 @@ internal static class MatClone
             var b = Util.Open(bnd);
             var f = b.Files.FirstOrDefault(x =>
                 Path.GetFileName(x.Name.Replace('\\', '/')).Equals(file, StringComparison.OrdinalIgnoreCase));
-            return f?.Bytes;
+            if (f != null)
+                return f.Bytes;
         }
 
         return null;
@@ -131,20 +114,13 @@ internal static class MatClone
     private static string Suffix(string slot, int index)
     {
         string s = slot.ToLowerInvariant();
-        if (s.Contains("albedo"))
-            return "_a";
-        if (s.Contains("normal"))
-            return "_n";
-        if (s.Contains("metallic"))
-            return "_m";
-        if (s.Contains("emissive"))
-            return "_e";
-        if (s.Contains("mask1"))
-            return "_mask1";
-        if (s.Contains("vector"))
-            return "_v";
-        if (s.Contains("distortion"))
-            return "_d";
+        if (s.Contains("albedo")) return "_a";
+        if (s.Contains("normal")) return "_n";
+        if (s.Contains("metallic")) return "_m";
+        if (s.Contains("emissive")) return "_e";
+        if (s.Contains("mask1")) return "_mask1";
+        if (s.Contains("vector")) return "_v";
+        if (s.Contains("distortion")) return "_d";
         return $"_{index}";
     }
 }
