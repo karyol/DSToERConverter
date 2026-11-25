@@ -53,6 +53,10 @@ regulation.bin
 *.tar
 *.gz
 
+# dane lokalne
+data/flver/
+data/out/
+
 # jeśli trzymasz rozpakowane gry w tym drzewie, dopisz:
 # /ER/
 # /DS3/

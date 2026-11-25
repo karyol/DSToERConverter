@@ -1,5 +1,11 @@
 using System.Text.Json;
 
+internal enum AttachMode
+{
+    Smart,
+    Master
+}
+
 internal sealed class Settings
 {
     private static readonly EnumerationOptions Shallow = new()
@@ -16,35 +22,70 @@ internal sealed class Settings
     public string WitchyBnd { get; set; } = "witchyBND.exe";
     public string FlverConv { get; set; } = "";
     public string PortKit { get; set; } = "";
-    public string MatMap { get; set; } = "matmap.csv";
+    public string DataDir { get; set; } = "";
+    public string MatMap { get; set; } = "";
+    public AttachMode Attach { get; set; } = AttachMode.Smart;
     public int LastSrcId { get; set; }
     public int IdFrom { get; set; } = 5000;
     public int IdTo { get; set; } = 5999;
     public int DonorId { get; set; } = 2130;
     public string BossName { get; set; } = "Pontiff Sulyvahn";
 
+    public string LogsDir => DataDir.Length > 0
+        ? Path.Combine(DataDir, "logs")
+        : Path.Combine(Path.GetTempPath(), "PortGui");
+
     private static string FilePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PortGui", "settings.json");
 
     public static Settings Load()
     {
+        Settings s = new();
         try
         {
             if (File.Exists(FilePath))
-                return JsonSerializer.Deserialize<Settings>(File.ReadAllText(FilePath)) ?? new Settings();
+                s = JsonSerializer.Deserialize<Settings>(File.ReadAllText(FilePath)) ?? new Settings();
         }
         catch { }
 
-        var s = new Settings();
+        s.Resolve();
+        return s;
+    }
+
+    // Wszystkie ścieżki do zasobów repo są absolutne i zakotwiczone w katalogu, w którym
+    // leży matmap.csv — niezależnie od katalogu roboczego procesu.
+    public void Resolve()
+    {
         try
         {
-            string up = AppContext.BaseDirectory;
-            s.FlverConv = FindUp(up, "FlverConv.exe") ?? "";
-            s.PortKit = FindUp(up, "PortKit.exe") ?? "";
+            if (DataDir.Length == 0 || !Directory.Exists(DataDir))
+            {
+                string? mm = FindUp(AppContext.BaseDirectory, "matmap.csv");
+                DataDir = mm != null ? Path.GetDirectoryName(mm)! : "";
+            }
+
+            if (FlverConv.Length == 0 || !File.Exists(FlverConv))
+                FlverConv = FindUp(AppContext.BaseDirectory, "FlverConv.exe") ?? "";
+
+            if (PortKit.Length == 0 || !File.Exists(PortKit))
+                PortKit = FindUp(AppContext.BaseDirectory, "PortKit.exe") ?? "";
+
+            if (MatMap.Length == 0 || !File.Exists(MatMap))
+                MatMap = DataDir.Length > 0 ? Path.Combine(DataDir, "matmap.csv") : "";
         }
         catch { }
+    }
 
-        return s;
+    public List<string> Validate()
+    {
+        var e = new List<string>();
+        if (!File.Exists(FlverConv)) e.Add("FlverConv.exe nie znaleziony");
+        if (!File.Exists(PortKit)) e.Add("PortKit.exe nie znaleziony");
+        if (!File.Exists(MatMap)) e.Add("matmap.csv nie znaleziony");
+        if (DataDir.Length == 0) e.Add("katalog data nie znaleziony");
+        if (!Directory.Exists(Ds3Dir)) e.Add("katalog DS3 nie istnieje");
+        if (!Directory.Exists(ErDir)) e.Add("katalog ER nie istnieje");
+        return e;
     }
 
     public void Save()

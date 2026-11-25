@@ -47,8 +47,8 @@ internal static class MatClone
                 continue;
             }
 
-            string srcPath = row.Er.Replace("{CID}", donor.ToString());
-            string outPath = row.Er.Replace("{CID}", model.ToString());
+            string srcPath = row.Er.Replace("{CIDU}", $"C{donor:D4}").Replace("{CID}", $"c{donor:D4}");
+            string outPath = row.Er.Replace("{CIDU}", $"C{model:D4}").Replace("{CID}", $"c{model:D4}");
 
             string matName = Util.Sanitize(Path.GetFileNameWithoutExtension(outPath));
             string outMtd = outPath.Substring(0, outPath.Length - ".matxml".Length);
