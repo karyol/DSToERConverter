@@ -5,6 +5,7 @@
 
 ## Kontekst
 
+Repo: https://github.com/karyol/DSToERConverter (branch `master`). Logi: `logs/`.
 Port Pontiffa Sulyvahna `c5140` (DS3) → `c9010` (ER), pipeline C#/WinForms `PortGui`.
 Donor: `c2130` (Morgott). Docelowy `NpcParam` `90100000`, `chr\c9010.chrbnd.dcx`.
 Środowisko: WitchyBND, UXM, Smithbox, SoulsFormatsNEXT.
