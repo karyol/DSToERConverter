@@ -1,0 +1,232 @@
+# audit model cXXX nodes=126 meshes=6 materials=6 dummies=92
+# węzły: idx | flags | parent | child | next | prev | name
+0 | DummyOwner, Bone | -1 | 1 | -1 | -1 | Master
+1 | DummyOwner, Bone | 0 | -1 | 2 | -1 | Throw_Target
+2 | DummyOwner, Bone | 0 | 3 | 17 | 1 | Pelvis
+3 | DummyOwner, Bone | 2 | 4 | 10 | -1 | L_Thigh
+4 | DummyOwner, Bone | 3 | 5 | 7 | -1 | L_Calf
+5 | DummyOwner, Bone | 4 | 6 | -1 | -1 | L_Foot
+6 | Bone | 5 | -1 | -1 | -1 | L_Toe0
+7 | DummyOwner, Bone | 3 | -1 | 8 | 4 | L_Knee
+8 | Bone | 3 | -1 | 9 | 7 | L_ThighTwist
+9 | Bone | 3 | -1 | -1 | 8 | L_ThighTwist1
+10 | DummyOwner, Bone | 2 | 11 | 94 | 3 | R_Thigh
+11 | DummyOwner, Bone | 10 | 12 | 14 | -1 | R_Calf
+12 | DummyOwner, Bone | 11 | 13 | -1 | -1 | R_Foot
+13 | Bone | 12 | -1 | -1 | -1 | R_Toe0
+14 | DummyOwner, Bone | 10 | -1 | 15 | 11 | R_Knee
+15 | Bone | 10 | -1 | 16 | 14 | R_ThighTwist
+16 | Bone | 10 | -1 | -1 | 15 | R_ThighTwist1
+17 | DummyOwner, Bone | 0 | 18 | 97 | 2 | Spine
+18 | DummyOwner, Bone | 17 | 19 | -1 | -1 | Spine1
+19 | DummyOwner, Bone | 18 | 20 | -1 | -1 | Spine2
+20 | DummyOwner, Bone | 19 | 21 | 45 | -1 | L_Clavicle
+21 | DummyOwner, Bone | 20 | 22 | 44 | -1 | L_UpperArm
+22 | Bone | 21 | 23 | 42 | -1 | L_Forearm
+23 | DummyOwner, Bone | 22 | 24 | 40 | -1 | L_Hand
+24 | Bone | 23 | 25 | 27 | -1 | L_Finger0
+25 | Bone | 24 | 26 | -1 | -1 | L_Finger01
+26 | Bone | 25 | -1 | -1 | -1 | L_Finger02
+27 | Bone | 23 | 28 | 30 | 24 | L_Finger1
+28 | Bone | 27 | 29 | -1 | -1 | L_Finger11
+29 | Bone | 28 | -1 | -1 | -1 | L_Finger12
+30 | Bone | 23 | 31 | 33 | 27 | L_Finger2
+31 | Bone | 30 | 32 | -1 | -1 | L_Finger21
+32 | Bone | 31 | -1 | -1 | -1 | L_Finger22
+33 | Bone | 23 | 34 | 36 | 30 | L_Finger3
+34 | Bone | 33 | 35 | -1 | -1 | L_Finger31
+35 | Bone | 34 | -1 | -1 | -1 | L_Finger32
+36 | Bone | 23 | 37 | 39 | 33 | L_Finger4
+37 | Bone | 36 | 38 | -1 | -1 | L_Finger41
+38 | Bone | 37 | -1 | -1 | -1 | L_Finger42
+39 | DummyOwner, Bone | 23 | -1 | -1 | 36 | L_Weapon001
+40 | Bone | 22 | -1 | 41 | 23 | L_ForeArmTwist
+41 | Bone | 22 | -1 | -1 | 40 | L_ForeArmTwist1
+42 | Bone | 21 | -1 | 43 | 22 | L_UpArmTwist1
+43 | Bone | 21 | -1 | -1 | 42 | L_Elbow
+44 | Bone | 20 | -1 | -1 | 21 | L_Shoulder
+45 | DummyOwner, Bone | 19 | 46 | 70 | 20 | R_Clavicle
+46 | DummyOwner, Bone | 45 | 47 | 69 | -1 | R_UpperArm
+47 | Bone | 46 | 48 | 67 | -1 | R_Forearm
+48 | DummyOwner, Bone | 47 | 49 | 65 | -1 | R_Hand
+49 | Bone | 48 | 50 | 52 | -1 | R_Finger0
+50 | Bone | 49 | 51 | -1 | -1 | R_Finger01
+51 | Bone | 50 | -1 | -1 | -1 | R_Finger02
+52 | Bone | 48 | 53 | 55 | 49 | R_Finger1
+53 | Bone | 52 | 54 | -1 | -1 | R_Finger11
+54 | Bone | 53 | -1 | -1 | -1 | R_Finger12
+55 | Bone | 48 | 56 | 58 | 52 | R_Finger2
+56 | Bone | 55 | 57 | -1 | -1 | R_Finger21
+57 | Bone | 56 | -1 | -1 | -1 | R_Finger22
+58 | Bone | 48 | 59 | 61 | 55 | R_Finger3
+59 | Bone | 58 | 60 | -1 | -1 | R_Finger31
+60 | Bone | 59 | -1 | -1 | -1 | R_Finger32
+61 | Bone | 48 | 62 | 64 | 58 | R_Finger4
+62 | Bone | 61 | 63 | -1 | -1 | R_Finger41
+63 | Bone | 62 | -1 | -1 | -1 | R_Finger42
+64 | DummyOwner, Bone | 48 | -1 | -1 | 61 | R_Weapon001
+65 | Bone | 47 | -1 | 66 | 48 | R_ForeArmTwist
+66 | Bone | 47 | -1 | -1 | 65 | R_ForeArmTwist1
+67 | Bone | 46 | -1 | 68 | 47 | R_UpArmTwist1
+68 | Bone | 46 | -1 | -1 | 67 | R_Elbow
+69 | Bone | 45 | -1 | -1 | 46 | R_Shoulder
+70 | DummyOwner, Bone | 19 | 71 | 74 | 45 | Neck
+71 | DummyOwner, Bone | 70 | 72 | -1 | -1 | Neck1
+72 | DummyOwner, Bone | 71 | 102 | 73 | -1 | Head
+73 | Bone | 71 | -1 | -1 | 72 | Jaw
+74 | Bone | 19 | 75 | 84 | 70 | L wing01
+75 | Bone | 74 | 76 | 78 | -1 | L wing02
+76 | Bone | 75 | 77 | -1 | -1 | L wing0202
+77 | Bone | 76 | -1 | -1 | -1 | L wing0203
+78 | Bone | 74 | 79 | 81 | 75 | L wing03
+79 | Bone | 78 | 80 | -1 | -1 | L wing0302
+80 | Bone | 79 | -1 | -1 | -1 | L wing0303
+81 | Bone | 74 | 82 | -1 | 78 | L wing04
+82 | Bone | 81 | 83 | -1 | -1 | L wing0402
+83 | Bone | 82 | -1 | -1 | -1 | L wing0403
+84 | Bone | 19 | 85 | 103 | 74 | R wing01
+85 | Bone | 84 | 86 | 88 | -1 | R wing02
+86 | Bone | 85 | 87 | -1 | -1 | R wing0202
+87 | Bone | 86 | -1 | -1 | -1 | R wing0203
+88 | Bone | 84 | 89 | 91 | 85 | R wing03
+89 | Bone | 88 | 90 | -1 | -1 | R wing0302
+90 | Bone | 89 | -1 | -1 | -1 | R wing0303
+91 | Bone | 84 | 92 | -1 | 88 | R wing04
+92 | Bone | 91 | 93 | -1 | -1 | R wing0402
+93 | Bone | 92 | -1 | -1 | -1 | R wing0403
+94 | DummyOwner, Bone | 2 | -1 | 95 | 10 | Dummy_r00
+95 | DummyOwner, Bone | 2 | -1 | 96 | 94 | Dummy_r01
+96 | DummyOwner, Bone | 2 | -1 | 107 | 95 | Dummy_r02
+97 | Mesh | 0 | -1 | 98 | 17 | faa
+98 | Mesh | 0 | -1 | 99 | 97 | オブジェクト010
+99 | Mesh | 0 | -1 | 100 | 98 | オブジェクト018
+100 | Mesh | 0 | -1 | 101 | 99 | weapon2
+101 | Mesh | 0 | -1 | 106 | 100 | weapon1
+102 | Bone | 72 | -1 | -1 | -1 | hood
+103 | Bone | 19 | -1 | 104 | 84 | fga00135
+104 | Bone | 19 | -1 | 105 | 103 | オブジェクト019
+105 | Bone | 19 | -1 | -1 | 104 | オブジェクト020
+106 | Mesh | 0 | -1 | -1 | 101 | Body_Model
+107 | DummyOwner, Bone | 2 | -1 | -1 | 96 | Dummy_r03
+108 | Disabled | -1 | -1 | -1 | -1 | R_Foot_Target2
+109 | Disabled | -1 | -1 | -1 | -1 | R_Foot_Target1
+110 | Disabled | -1 | -1 | -1 | -1 | R_Foot_Target
+111 | Disabled | -1 | -1 | -1 | -1 | L_Foot_Target2
+112 | Disabled | -1 | -1 | -1 | -1 | L_Foot_Target1
+113 | Disabled | -1 | -1 | -1 | -1 | L_Foot_Target
+114 | Disabled | -1 | -1 | -1 | -1 | Throw_Target2
+115 | Disabled | -1 | -1 | -1 | -1 | Throw_Target1
+116 | Disabled | -1 | -1 | -1 | -1 | Root
+117 | Disabled | -1 | -1 | -1 | -1 | L_CalfTwist
+118 | Disabled | -1 | -1 | -1 | -1 | L_CalfTwist1
+119 | Disabled | -1 | -1 | -1 | -1 | R_CalfTwist
+120 | Disabled | -1 | -1 | -1 | -1 | R_CalfTwist1
+121 | Disabled | -1 | -1 | -1 | -1 | L_UpArmTwist
+122 | Disabled | -1 | -1 | -1 | -1 | R_UpArmTwist
+123 | Disabled | -1 | -1 | -1 | -1 | Hand_Target_Root
+124 | Disabled | -1 | -1 | -1 | -1 | L_Hand_Target
+125 | Disabled | -1 | -1 | -1 | -1 | R_Hand_Target
+# dummies: idx | refID | nameHash | parent | attach | usesAttach
+0 | 1 | 0x44338621 | 94 | 48 | True
+1 | 2 | 0xDD3AD79B | 94 | 23 | True
+2 | 3 | 0xAA3DE70D | 94 | 12 | True
+3 | 4 | 0x345972AE | 94 | 5 | True
+4 | 5 | 0x435E4238 | 94 | 18 | True
+5 | 6 | 0xDA571382 | 94 | 18 | True
+6 | 7 | 0xAD502314 | 94 | 72 | True
+7 | 8 | 0x3DEF3E85 | 94 | 19 | True
+8 | 10 | 0xB8F6FCF9 | 94 | 64 | True
+9 | 11 | 0xCFF1CC6F | 94 | 64 | True
+10 | 12 | 0x56F89DD5 | 94 | 64 | True
+11 | 13 | 0x21FFAD43 | 94 | 47 | True
+12 | 14 | 0xBF9B38E0 | 94 | 45 | True
+13 | 15 | 0xC89C0876 | 94 | 39 | True
+14 | 16 | 0x519559CC | 94 | 39 | True
+15 | 17 | 0x2692695A | 94 | 39 | True
+16 | 18 | 0xB62D74CB | 94 | 22 | True
+17 | 19 | 0xC12A445D | 94 | 20 | True
+18 | 90 | 0x702F76F1 | 94 | 19 | True
+19 | 91 | 0x07284667 | 94 | 17 | True
+20 | 199 | 0x981C6088 | 94 | 72 | True
+21 | 199 | 0x981C6088 | 94 | 72 | True
+22 | 220 | 0x0072BFBE | 94 | 19 | True
+23 | 230 | 0x19698EFF | 94 | 1 | True
+24 | 300 | 0x3386B70B | 94 | 64 | True
+25 | 301 | 0x4481879D | 94 | 64 | True
+26 | 310 | 0x2A9D864A | 94 | 39 | True
+27 | 311 | 0x5D9AB6DC | 94 | 39 | True
+28 | 400 | 0x36C9A18E | 94 | 12 | True
+29 | 420 | 0x04FFC30C | 94 | 5 | True
+30 | 800 | 0x3FD358EA | 94 | 75 | True
+31 | 800 | 0x3FD358EA | 94 | 76 | True
+32 | 800 | 0x3FD358EA | 94 | 74 | True
+33 | 800 | 0x3FD358EA | 94 | 77 | True
+34 | 800 | 0x3FD358EA | 94 | 79 | True
+35 | 800 | 0x3FD358EA | 94 | 80 | True
+36 | 800 | 0x3FD358EA | 94 | 82 | True
+37 | 800 | 0x3FD358EA | 94 | 81 | True
+38 | 800 | 0x3FD358EA | 94 | 83 | True
+39 | 800 | 0x3FD358EA | 94 | 74 | True
+40 | 810 | 0x26C869AB | 94 | 85 | True
+41 | 810 | 0x26C869AB | 94 | 86 | True
+42 | 810 | 0x26C869AB | 94 | 84 | True
+43 | 810 | 0x26C869AB | 94 | 87 | True
+44 | 810 | 0x26C869AB | 94 | 89 | True
+45 | 810 | 0x26C869AB | 94 | 90 | True
+46 | 810 | 0x26C869AB | 94 | 92 | True
+47 | 810 | 0x26C869AB | 94 | 91 | True
+48 | 810 | 0x26C869AB | 94 | 93 | True
+49 | 810 | 0x26C869AB | 94 | 19 | True
+50 | 900 | 0x3E1132DD | 94 | 0 | True
+51 | 905 | 0x4E7BC652 | 94 | 18 | True
+52 | 930 | 0x153C611E | 94 | 14 | True
+53 | 940 | 0x5A7DF7D9 | 94 | 7 | True
+54 | 200 | 0x0F24F48C | 95 | 17 | True
+55 | 200 | 0x0F24F48C | 95 | 17 | True
+56 | 200 | 0x0F24F48C | 95 | 19 | True
+57 | 200 | 0x0F24F48C | 95 | 19 | True
+58 | 200 | 0x0F24F48C | 95 | 18 | True
+59 | 200 | 0x0F24F48C | 95 | 18 | True
+60 | 200 | 0x0F24F48C | 95 | 45 | True
+61 | 200 | 0x0F24F48C | 95 | 18 | True
+62 | 200 | 0x0F24F48C | 95 | 18 | True
+63 | 200 | 0x0F24F48C | 95 | 72 | True
+64 | 200 | 0x0F24F48C | 95 | 20 | True
+65 | 200 | 0x0F24F48C | 95 | 2 | True
+66 | 200 | 0x0F24F48C | 95 | 2 | True
+67 | 200 | 0x0F24F48C | 95 | 2 | True
+68 | 200 | 0x0F24F48C | 95 | 2 | True
+69 | 200 | 0x0F24F48C | 95 | 21 | True
+70 | 200 | 0x0F24F48C | 95 | 22 | True
+71 | 200 | 0x0F24F48C | 95 | 3 | True
+72 | 200 | 0x0F24F48C | 95 | 4 | True
+73 | 200 | 0x0F24F48C | 95 | 5 | True
+74 | 200 | 0x0F24F48C | 95 | 23 | True
+75 | 200 | 0x0F24F48C | 95 | 46 | True
+76 | 200 | 0x0F24F48C | 95 | 47 | True
+77 | 200 | 0x0F24F48C | 95 | 10 | True
+78 | 200 | 0x0F24F48C | 95 | 11 | True
+79 | 200 | 0x0F24F48C | 95 | 12 | True
+80 | 200 | 0x0F24F48C | 95 | 48 | True
+81 | 100 | 0x4AC23005 | 96 | -1 | False
+82 | 101 | 0x3DC50093 | 96 | -1 | False
+83 | 203 | 0xD18DDFE6 | 96 | -1 | False
+84 | 210 | 0x519FBF1D | 96 | -1 | False
+85 | 260 | 0x1EDE29DA | 96 | -1 | False
+86 | 179 | 0x413F37D6 | 107 | -1 | False
+87 | 180 | 0xBF7B93BD | 107 | -1 | False
+88 | 181 | 0xC87CA32B | 107 | -1 | False
+89 | 182 | 0x5175F291 | 107 | -1 | False
+90 | 183 | 0x2672C207 | 107 | -1 | False
+91 | 184 | 0xB81657A4 | 107 | -1 | False
+# materiały: matbin | gx | mtd_out | mtd_src | name
+0 | 1 | N:\GR\data\Material\mtd\Chr\c9010\c9010_000.matxml | N:\FDP\data\Material\mtd\character\C[ARSN].mtd | 05 - Default
+1 | 2 | N:\GR\data\Material\mtd\Chr\c9010\c9010_100.matxml | N:\FDP\data\Material\mtd\character\C[ARSN]_e.mtd | 07 - Default
+2 | 1 | N:\GR\data\Material\mtd\Chr\c9010\c9010_101.matxml | N:\FDP\data\Material\mtd\character\C[ARSN]_e_Cloth.mtd | body_cloth
+3 | 2 | N:\GR\data\Material\mtd\Chr\c9010\c9010_102.matxml | N:\FDP\data\Material\mtd\character\C[ARSN]_e_Wings.mtd | #00# wings
+4 | 0 | N:\GR\data\Material\mtd\Chr\c9010\c9010_200.matxml | N:\FDP\data\Material\mtd\character\C[ARSN]_m.mtd | 08 - Default
+0 | 1 | N:\GR\data\Material\mtd\Chr\c9010\c9010_000.matxml | N:\FDP\data\Material\mtd\character\C[ARSN].mtd | initialShadingGroup
+# --- ostrzeżenia ---
+nazwy z podejrzanymi znakami: 0
+osierocone węzły (parent -1): 0
+rozkład gx: gx0=1, gx1=3, gx2=2

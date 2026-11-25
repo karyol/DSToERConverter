@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net11.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="SoulsFormats">
+      <HintPath>..\..\..\..\Dokumenty\GitHub\SoulsFormatsNEXT\SoulsFormats\bin\Debug\net9.0\SoulsFormats.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,59 @@
+# build
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.pdb
+.vscode/
+
+# ustawienia lokalne
+Settings.local.json
+*.local.json
+
+# binaria gry
+*.flver
+*.flver.dcx
+*.chrbnd
+*.chrbnd.dcx
+*.anibnd
+*.anibnd.dcx
+*.behbnd
+*.behbnd.dcx
+*.partsbnd
+*.partsbnd.dcx
+*.mapbnd
+*.mapbnd.dcx
+*.bnd
+*.bnd.dcx
+*.bhd
+*.bdt
+*.dcx
+*.tpf
+*.hkx
+*.hks
+*.nva
+*.nvm
+*.clm2
+*.mtd
+*.MTD
+*.matxml
+*.tpf.dcx
+regulation.bin
+*.sl2
+*.erm
+*.bak
+*.orig
+*.rej
+
+# archiwa
+*.zip
+*.7z
+*.rar
+*.tar
+*.gz
+
+# jeśli trzymasz rozpakowane gry w tym drzewie, dopisz:
+# /ER/
+# /DS3/
+# /mod/

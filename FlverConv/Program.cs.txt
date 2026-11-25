@@ -1,0 +1,326 @@
+﻿// FlverConv — konwersja FLVER 0x20014 (DS3) -> 0x2001A (ER)
+// Użycie: FlverConv <in.flver> <out.flver> <matmap.csv> [--model 9010]
+// Model można pominąć, jeśli nazwa wyjściowa ma postać cXXXX.flver.
+using SoulsFormats;
+using System.Globalization;
+using System.Text;
+
+internal static class Program
+{
+    private const int SrcVersion = 0x20014;
+    private const int DstVersion = 0x2001A;
+
+    private static readonly string[] BoneOnlyHints =
+    {
+        "Finger", "Collar", "Lip", "Cheek", "Jaw", "Tongue", "Blink", "Brow",
+        "Nostril", "Eye", "Ear", "Shoulder", "Elbow", "Wing"
+    };
+
+    private static int Main(string[] args)
+    {
+        if (args.Length < 3)
+        {
+            Console.Error.WriteLine("FlverConv <in.flver> <out.flver> <matmap.csv> [--model 9010]");
+            return 2;
+        }
+
+        string inPath = args[0];
+        string outPath = args[1];
+        string mapPath = args[2];
+
+        if (!File.Exists(inPath))
+        {
+            Console.Error.WriteLine($"brak pliku wejściowego: {inPath}");
+            return 2;
+        }
+
+        int model;
+        try
+        {
+            string? modelArg = GetOpt(args, "--model");
+            model = modelArg != null
+                ? ParseModel(modelArg)
+                : ParseModel(Path.GetFileNameWithoutExtension(outPath));
+        }
+        catch (ArgumentException e)
+        {
+            Console.Error.WriteLine(e.Message);
+            return 2;
+        }
+
+        FLVER2 f = FLVER2.Read(inPath);
+        if (f.Header.Version != SrcVersion)
+            Console.Error.WriteLine($"uwaga: wersja {f.Header.Version:X}, oczekiwano {SrcVersion:X}");
+
+        Console.WriteLine($"model docelowy: c{model:D4}");
+        Console.WriteLine($"tryb stringów wejścia: Unicode={f.Header.Unicode}");
+
+        FixShiftJisNames(f);
+        f.Header.Version = DstVersion;
+        f.Header.Unicode = true;
+        f.Header.BigEndian = false;
+
+        var map = LoadMatMap(mapPath);
+
+        var meshNodes = new HashSet<int>(f.Meshes.Select(m => m.NodeIndex));
+        var dummyParents = new HashSet<int>(f.Dummies
+            .Select(d => (int)d.ParentBoneIndex).Where(i => i >= 0));
+
+        int disabledFirst = FindDisabledBlockStart(f);
+
+        // --- flagi węzłów ---
+        for (int i = 0; i < f.Nodes.Count; i++)
+        {
+            FLVER.Node n = f.Nodes[i];
+
+            if (disabledFirst >= 0 && i >= disabledFirst)
+            {
+                n.Flags = FLVER.Node.NodeFlags.Disabled;
+                continue;
+            }
+
+            bool leafByName = BoneOnlyHints.Any(h =>
+                n.Name.IndexOf(h, StringComparison.OrdinalIgnoreCase) >= 0);
+            bool branching = f.Nodes.Any(o => o.ParentIndex == i) || dummyParents.Contains(i);
+
+            if (meshNodes.Contains(i))
+            {
+                // nod siatki: Mesh, bez Bone
+                n.Flags = FLVER.Node.NodeFlags.Mesh;
+                if (!leafByName && branching)
+                    n.Flags |= FLVER.Node.NodeFlags.DummyOwner;
+                continue;
+            }
+
+            n.Flags = FLVER.Node.NodeFlags.Bone;
+            if (!leafByName && branching)
+                n.Flags |= FLVER.Node.NodeFlags.DummyOwner;
+        }
+
+        // --- GX ---
+        // GXIndex materiału indeksuje tablicę offsetów budowaną z GXLists,
+        // więc po Clear() odbudowujemy po jednej pustej liście na każdy gxIdx z CSV (min. 1).
+        f.GXLists.Clear();
+        int gxCount = 1;
+        foreach (var e in map.Values)
+            if (e.GX + 1 > gxCount)
+                gxCount = e.GX + 1;
+        for (int i = 0; i < gxCount; i++)
+            f.GXLists.Add(new FLVER2.GXList());   // TerminatorID = int.MaxValue, Length = 0
+
+        // --- materiały ---
+        // klucz = sama nazwa pliku MTD; indeks matbinu = pierwsze wystąpienie tego klucza
+        string[] keys = f.Materials.Select(m => Path.GetFileName(m.MTD ?? "")).ToArray();
+        int unmatched = 0;
+
+        for (int i = 0; i < f.Materials.Count; i++)
+        {
+            FLVER2.Material m = f.Materials[i];
+            string key = keys[i];
+            int first = Array.FindIndex(keys, k =>
+                string.Equals(k, key, StringComparison.OrdinalIgnoreCase));
+
+            if (map.TryGetValue(key, out var e))
+            {
+                m.MTD = Resolve(e.Path, model);
+                m.Index = first >= 0 ? first : i;
+                m.GXIndex = e.GX >= 0 && e.GX < gxCount ? e.GX : 0;
+                Console.WriteLine($"  [{i}] {key} -> {m.MTD} (matbin {m.Index}, gx {m.GXIndex})");
+            }
+            else
+            {
+                unmatched++;
+                m.MTD = Resolve($"N:\\GR\\data\\Material\\mtd\\Chr\\{{CID}}\\{{CID}}_mat{i}.matxml", model);
+                m.Index = first >= 0 ? first : i;
+                m.GXIndex = 0;
+                Console.Error.WriteLine($"  brak wpisu: [{i}] name='{m.Name}' mtd='{m.MTD}' key='{key}'");
+            }
+        }
+        if (unmatched > 0)
+            Console.Error.WriteLine($"UWAGA: {unmatched} materiałów bez wpisu w matmap.csv — użyto ścieżek zastępczych");
+
+        // --- SkeletonSet ---
+        BuildSkeletons(f);
+
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outPath))!);
+        f.Write(outPath);
+
+        int disabled = f.Nodes.Count(n => n.Flags == FLVER.Node.NodeFlags.Disabled);
+        Console.WriteLine($"zapisano: {outPath}");
+        Console.WriteLine($"  węzły={f.Nodes.Count} (Disabled={disabled}) siatki={f.Meshes.Count} " +
+                          $"materiały={f.Materials.Count} dummies={f.Dummies.Count} GXLists={f.GXLists.Count}");
+
+        Console.WriteLine("weryfikacja round-trip:");
+        bool ok = Verify(outPath, f.Nodes.Count, disabled);
+        return ok ? 0 : 1;
+    }
+
+    private static string Resolve(string template, int model) => template
+        .Replace("{CID}", $"c{model:D4}")
+        .Replace("{CIDU}", $"C{model:D4}")
+        .Replace("{ID}", $"{model:D4}");
+
+    private static int ParseModel(string s)
+    {
+        string t = s.Trim().TrimStart('c', 'C');
+        if (!int.TryParse(t, NumberStyles.Integer, CultureInfo.InvariantCulture, out int v)
+            || v <= 0 || v > 9999)
+            throw new ArgumentException($"zły numer modelu: '{s}' (oczekiwano 1..9999 lub cXXXX)");
+        return v;
+    }
+
+    private static string? GetOpt(string[] args, string key)
+    {
+        int i = Array.IndexOf(args, key);
+        return i >= 0 && i + 1 < args.Length ? args[i + 1] : null;
+    }
+
+    private static bool Verify(string path, int expectedNodes, int expectedDisabled)
+    {
+        FLVER2 r = FLVER2.Read(path);
+        bool ok = true;
+
+        void Check(string label, bool cond)
+        {
+            Console.WriteLine($"  {(cond ? "OK  " : "FAIL")} {label}");
+            if (!cond)
+                ok = false;
+        }
+
+        Check($"węzły={r.Nodes.Count} (oczekiwano {expectedNodes})", r.Nodes.Count == expectedNodes);
+        Check("0 węzłów z flagami 0", r.Nodes.All(n => n.Flags != 0));
+        Check($"Disabled={r.Nodes.Count(n => n.Flags == FLVER.Node.NodeFlags.Disabled)} (oczekiwano {expectedDisabled})",
+            r.Nodes.Count(n => n.Flags == FLVER.Node.NodeFlags.Disabled) == expectedDisabled);
+        Check("SkeletonSet: BaseSkeleton == AllSkeletons == Nodes",
+            r.Skeletons != null
+            && r.Skeletons.BaseSkeleton.Count == r.Nodes.Count
+            && r.Skeletons.AllSkeletons.Count == r.Nodes.Count);
+        Check($"GXIndex w zakresie 0..{r.GXLists.Count - 1}",
+            r.GXLists.Count > 0 && r.Materials.All(m => m.GXIndex >= 0 && m.GXIndex < r.GXLists.Count));
+        Check("wszystkie MTD wskazują N:\\GR", r.Materials.All(m => m.MTD.Contains("\\GR\\")));
+        Check("brak MTD z niepodstawionym tokenem",
+            r.Materials.All(m => !m.MTD.Contains('{') && !m.MTD.Contains('}')));
+        return ok;
+    }
+
+    private static int FindDisabledBlockStart(FLVER2 f)
+    {
+        int i = f.Nodes.Count - 1;
+        while (i >= 0 && f.Nodes[i].Flags.HasFlag(FLVER.Node.NodeFlags.Disabled))
+            i--;
+        return i + 1;
+    }
+
+    private static void BuildSkeletons(FLVER2 f)
+    {
+        var set = new FLVER2.SkeletonSet
+        {
+            BaseSkeleton = new List<FLVER2.SkeletonSet.Bone>(f.Nodes.Count),
+            AllSkeletons = new List<FLVER2.SkeletonSet.Bone>(f.Nodes.Count),
+        };
+
+        for (int i = 0; i < f.Nodes.Count; i++)
+        {
+            FLVER.Node n = f.Nodes[i];
+
+            set.BaseSkeleton.Add(new FLVER2.SkeletonSet.Bone(i)
+            {
+                ParentIndex = n.ParentIndex,
+                FirstChildIndex = n.FirstChildIndex,
+                NextSiblingIndex = n.NextSiblingIndex,
+                PreviousSiblingIndex = n.PreviousSiblingIndex
+            });
+
+            set.AllSkeletons.Add(new FLVER2.SkeletonSet.Bone(i)
+            {
+                ParentIndex = n.ParentIndex,
+                FirstChildIndex = n.FirstChildIndex,
+                NextSiblingIndex = n.NextSiblingIndex,
+                PreviousSiblingIndex = n.PreviousSiblingIndex
+            });
+        }
+
+        f.Skeletons = set;
+    }
+
+    // Nagłówek może kłamać o Unicode. Reassemblujemy bajty tylko wtedy, gdy string
+    // rzeczywiście przyszedł z odczytu UTF-16 (czyli zawiera znaki spoza 0xFF).
+    // Przy poprawnym odczycie ShiftJIS ciąg zostaje bez zmian.
+    private static void FixShiftJisNames(FLVER2 f)
+    {
+        Encoding sj = Encoding.GetEncoding("shift_jis");
+
+        string Fix(string? s)
+        {
+            if (string.IsNullOrEmpty(s))
+                return s ?? "";
+            if (!s.Any(c => c > 0xFF))
+                return s.Trim('\0');
+
+            var bytes = new byte[s.Length * 2];
+            for (int i = 0; i < s.Length; i++)
+            {
+                bytes[2 * i] = (byte)(s[i] & 0xFF);
+                bytes[(2 * i) + 1] = (byte)(s[i] >> 8);
+            }
+            string r = sj.GetString(bytes).Trim('\0');
+            return r.Length == 0 ? s : r;
+        }
+
+        foreach (var n in f.Nodes)
+            n.Name = Fix(n.Name);
+        foreach (var m in f.Materials)
+        {
+            m.Name = Fix(m.Name);
+            m.MTD = Fix(m.MTD);
+        }
+        foreach (var t in f.Materials.SelectMany(m => m.Textures))
+        {
+            t.Path = Fix(t.Path);
+            t.ParamName = Fix(t.ParamName);
+        }
+    }
+
+    private sealed record MapEntry(string Path, int GX);
+
+    private static Dictionary<string, MapEntry> LoadMatMap(string path)
+    {
+        var d = new Dictionary<string, MapEntry>(StringComparer.OrdinalIgnoreCase);
+
+        if (!File.Exists(path))
+        {
+            File.WriteAllText(path,
+                "# DS3 MTD ; ER MATXML ; gxIndex\n" +
+                "# tokeny: {CID} = cXXXX, {CIDU} = CXXXX, {ID} = XXXX\n" +
+                "# lewa kolumna = sama nazwa pliku MTD (dopasowanie po Path.GetFileName)\n" +
+                "# indeks matbinu ustawiany automatycznie (pierwsze wystąpienie nazwy)\n" +
+                "C[ARSN].mtd;N:\\GR\\data\\Material\\mtd\\Chr\\{CID}\\{CID}_000.matxml;0\n");
+            Console.Error.WriteLine($"brak {path} — utworzono szablon");
+            return d;
+        }
+
+        foreach (string raw in File.ReadAllLines(path))
+        {
+            string line = raw.Trim();
+            if (line.Length == 0 || line[0] == '#')
+                continue;
+
+            string[] p = line.Split(';');
+            if (p.Length < 3)
+                continue;
+            if (!int.TryParse(p[2].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int gx))
+                continue;
+
+            string key = Path.GetFileName(p[0].Trim());
+            if (key.Length == 0)
+                continue;
+
+            d[key] = new MapEntry(p[1].Trim(), gx);
+        }
+
+        if (d.Count == 0)
+            Console.Error.WriteLine($"UWAGA: {path} nie zawiera żadnego wpisu");
+
+        return d;
+    }
+}
