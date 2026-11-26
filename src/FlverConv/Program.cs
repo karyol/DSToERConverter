@@ -184,7 +184,7 @@ internal static class Program
             {
                 unmatched++;
                 resolvedMtd[i] = Resolve(
-                    $"N:\\GR\\data\\Material\\mtd\\Chr\\{{CID}}\\{{CID}}_{i:D3}.matxml", model);
+                    $"N:\\GR\\data\\Material\\mtd\\Chr\\matxml\\C[{{CID}}]_{i:D3}.matxml", model);
                 resolvedGx[i] = 0;
                 Console.Error.WriteLine(
                     $"  brak wpisu: [{i}] name='{m.Name}' mtd='{srcMtd[i]}' key='{keys[i]}'");
@@ -207,7 +207,12 @@ internal static class Program
             m.Index = idx;
             m.GXIndex = resolvedGx[i] >= 0 && resolvedGx[i] < gxCount ? resolvedGx[i] : 0;
         }
-        
+
+        // ER trzyma ścieżki tekstur puste — materiał definiuje matbin, nie FLVER
+        foreach (FLVER2.Material m in f.Materials)
+            foreach (FLVER2.Texture t in m.Textures)
+                t.Path = "";
+
         if (unmatched > 0)
             Console.Error.WriteLine(
                 $"UWAGA: {unmatched} materiałów bez wpisu w matmap.csv — użyto ścieżek zastępczych");
@@ -256,12 +261,21 @@ internal static class Program
         string ext = Path.GetExtension(file);
         string stem = Path.GetFileNameWithoutExtension(file);
 
-        string norm = stem.Replace("[", "").Replace("]", "");
-        Match m = Regex.Match(norm, @"^[Cc]+(\d{1,4})(_.*)?$");
-        if (m.Success)
-            norm = "c" + m.Groups[1].Value.PadLeft(4, '0') + (m.Groups[2].Value ?? "");
+        // forma ER: C[c9010]_nazwa — nawiasy zostają
+        Match er = Regex.Match(stem, @"^C\[c(\d{1,4})\](_.+)?$", RegexOptions.IgnoreCase);
+        string norm;
+        if (er.Success)
+        {
+            norm = $"C[c{er.Groups[1].Value.PadLeft(4, '0')}]{er.Groups[2].Value}";
+        }
         else
-            norm = norm.ToLowerInvariant();
+        {
+            string stripped = stem.Replace("[", "").Replace("]", "");
+            Match m = Regex.Match(stripped, @"^[Cc]+(\d{1,4})(_.*)?$");
+            norm = m.Success
+                ? "c" + m.Groups[1].Value.PadLeft(4, '0') + (m.Groups[2].Value ?? "")
+                : stripped.ToLowerInvariant();
+        }
 
         string result = Path.Combine(dir, norm + ext).Replace('/', '\\');
         changed = !string.Equals(result, path, StringComparison.Ordinal);
@@ -321,10 +335,13 @@ internal static class Program
                 && b.NextSiblingIndex < r.Nodes.Count && b.PreviousSiblingIndex < r.Nodes.Count));
         Check($"GXIndex w zakresie 0..{r.GXLists.Count - 1}",
             r.GXLists.Count > 0 && r.Materials.All(m => m.GXIndex >= 0 && m.GXIndex < r.GXLists.Count));
-        Check("wszystkie MTD w katalogu Chr", r.Materials.All(m => m.MTD.Contains("\\Material\\mtd\\Chr\\")));
-        Check("brak MTD z nawiasami lub podwójnym c",
-            r.Materials.All(m => !m.MTD.Contains('[') && !m.MTD.Contains(']')
-                                 && !Path.GetFileName(m.MTD).StartsWith("cc")));
+        Check("wszystkie MTD w katalogu Chr\\matxml",
+            r.Materials.All(m => m.MTD.Contains("\\Material\\mtd\\Chr\\matxml\\")));
+        Check("MTD w formacie C[cXXXX]_nazwa.matxml",
+            r.Materials.All(m => Regex.IsMatch(Path.GetFileName(m.MTD),
+                @"^C\[c\d{4}\]_[a-z0-9_]+\.matxml$", RegexOptions.IgnoreCase)));
+        Check("ścieżki tekstur puste",
+            r.Materials.All(m => m.Textures.All(t => t.Path.Length == 0)));
         Check("brak dwóch materiałów z tym samym MTD w różnym matbinie",
             r.Materials.GroupBy(m => m.Index).All(g => g.Select(x => x.MTD).Distinct().Count() == 1));
         Check($"dummies={r.Dummies.Count} (oczekiwano {expectedDummies})",
@@ -588,7 +605,7 @@ internal static class Program
                 for (int i = 0; i < r.Length; i++)
                 {
                     b[2 * i] = (byte)(r[i] & 0xFF);
-                    b[(2 * i) + 1] = (byte)(r[i] >> 8);
+                    b[2 * i + 1] = (byte)(r[i] >> 8);
                 }
                 string alt = sj.GetString(b).Trim('\0');
                 if (alt.Length > 0 && Score(alt) < Score(r))
@@ -604,8 +621,7 @@ internal static class Program
         {
             string v = Fix(f.Nodes[i].Name, out bool d);
             f.Nodes[i].Name = v;
-            if (d)
-                repaired++;
+            if (d) repaired++;
         }
         for (int i = 0; i < f.Materials.Count; i++)
         {
@@ -683,6 +699,7 @@ internal static class Program
         public IEnumerable<MapEntry> Entries => mtdExact.Values.Concat(nameExact.Values)
             .Concat(mtdRules.Select(r => r.Entry)).Concat(nameRules.Select(r => r.Entry));
 
+        // DS3 trzyma w MTD literalne nawiasy (C[ARSN].mtd) — normalizujemy po obu stronach
         private static string Norm(string s) => s.Replace("[", "").Replace("]", "");
 
         public bool TryMatchMtd(string key, out MapEntry entry)
@@ -761,8 +778,8 @@ internal static class Program
                 "# lewa kolumna: nazwa MTD (konczy sie .mtd) albo nazwa materialu\n" +
                 "# wildcardy: [ARSN], *, ?\n" +
                 "# tokeny w prawej kolumnie: {CID} = cXXXX, {CIDU} = CXXXX, {ID} = XXXX\n" +
-                "# gxIdx: 0 = metal/bron, 1 = skora/twarz/szata, 2 = efekty/krysztal\n" +
-                "C[ARSN].mtd;N:\\GR\\data\\Material\\mtd\\Chr\\{CID}\\{CID}_000.matxml;1\n");
+                "# gxIdx: 0 = default (materialy bossow ER uzywaja 0)\n" +
+                "C[ARSN].mtd;N:\\GR\\data\\Material\\mtd\\Chr\\matxml\\C[{CID}]_body.matxml;0\n");
             Console.Error.WriteLine($"brak {path} — utworzono szablon");
             return map;
         }

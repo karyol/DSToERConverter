@@ -1,11 +1,11 @@
 # left column: MTD filename (ends with .mtd) or material name
 # wildcards: [ARSN], *, ?
 # right column tokens: {CID} = cXXXX, {CIDU} = CXXXX, {ID} = XXXX
-# gxIdx: 0 = metal/weapon, 1 = skin/face/cloth, 2 = effects/crystal
+# gxIdx: 0 = default (ER boss materials use 0 across the board)
 # name rows are matched before MTD rows
-C[ARSN].mtd;N:\GR\data\Material\mtd\Chr\{CID}\{CID}_000.matxml;1
-C[ARSN]_e.mtd;N:\GR\data\Material\mtd\Chr\{CID}\{CID}_100.matxml;2
-C[ARSN]_e_Cloth.mtd;N:\GR\data\Material\mtd\Chr\{CID}\{CID}_101.matxml;1
-C[ARSN]_e_Wings.mtd;N:\GR\data\Material\mtd\Chr\{CID}\{CID}_102.matxml;2
-C[ARSN]_m.mtd;N:\GR\data\Material\mtd\Chr\{CID}\{CID}_200.matxml;0
-*wings*;N:\GR\data\Material\mtd\Chr\{CID}\{CID}_102.matxml;2
+C[ARSN].mtd;N:\GR\data\Material\mtd\Chr\matxml\C[{CID}]_body.matxml;0
+C[ARSN]_e.mtd;N:\GR\data\Material\mtd\Chr\matxml\C[{CID}]_body_e.matxml;0
+C[ARSN]_e_Cloth.mtd;N:\GR\data\Material\mtd\Chr\matxml\C[{CID}]_cloth.matxml;0
+C[ARSN]_e_Wings.mtd;N:\GR\data\Material\mtd\Chr\matxml\C[{CID}]_wings.matxml;0
+C[ARSN]_m.mtd;N:\GR\data\Material\mtd\Chr\matxml\C[{CID}]_metal.matxml;0
+*wings*;N:\GR\data\Material\mtd\Chr\matxml\C[{CID}]_wings.matxml;0

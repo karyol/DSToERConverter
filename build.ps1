@@ -2,8 +2,9 @@ param([ValidateSet('Debug','Release')][string]$Config = 'Release')
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 $bin  = Join-Path $root 'bin'
+$lib  = Join-Path $root 'lib'
 
-if (-not (Test-Path (Join-Path $root 'lib\SoulsFormats.dll'))) {
+if (-not (Test-Path (Join-Path $lib 'SoulsFormats.dll'))) {
   throw "brak lib\SoulsFormats.dll"
 }
 
@@ -36,5 +37,11 @@ if ($LASTEXITCODE -ne 0) { throw "PortKit nie startuje" }
 & (Join-Path $bin 'FlverConv.exe')
 if ($LASTEXITCODE -ne 2) { throw "FlverConv nie startuje poprawnie" }
 
-Write-Host "`nGOTOWE: $bin" -ForegroundColor Green
+$oodle = Get-ChildItem -Filter 'oo2core_*_win64.dll' -ErrorAction SilentlyContinue
+if (-not $oodle) {
+  Write-Warning "brak oo2core_*_win64.dll w katalogu glownym projektu - pliki .dcx z Oodle sie nie odczytaja"
+}
+
+Write-Host ""
+Write-Host "GOTOWE: $bin" -ForegroundColor Green
 Get-ChildItem $bin -Filter *.exe | Select-Object Name, Length | Format-Table

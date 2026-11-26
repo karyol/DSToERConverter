@@ -12,6 +12,7 @@
                 "matclone" => MatClone.Run(args),
                 "anibnd" => AniBnd.Run(args),
                 "behbnd" => BehBnd.Run(args),
+                "matlist" => MatList.Run(args),
                 "check" => Check(),
                 "help" or "-h" or "--help" => Help(),
                 _ => Unknown(args[0])
@@ -47,6 +48,9 @@
 
               behbnd   --src <ds3> --out <plik> --donor <id> --er <dir>
                         Buduje behbnd ER na behaviorze donora, przemianowuje ID.
+
+              matlist  --er <dir> [--filter <tekst>]
+                        Listuje wpisy material.matbinbnd.dcx (diagnostyka nazw donorów)
 
               check    Wersje bibliotek.
             """);
